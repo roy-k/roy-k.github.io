@@ -3,7 +3,7 @@ node_js:
 - 8.9.0
 env:
   global:
-    - GH_REF: github.com/roy-k/bolg.git
+    - GH_REF: github.com/roy-k/roy-k.github.io.git
     - secure: "pbKnYUn0no/lgyu/yA0e6aqnUYWc/H6blR9Nm1nlpU0+nZizSVKGdrGsmpSBo/m4ZuuMax+oI2GEmTkFgZi6ip10Ol1VgU9K5DIctJqykc9PH4nRRfnmyAN3EmgZE1LoK/tb4Tz8KaiCmxDWxUKlk0mknuJBp6mjNFgjdlTFPHXx/hARmJK1MRe2mX91q0v8Y023ciTgx+8i6LzTHNmLkKyNiSD8j4fm4ZvjTx4kVSs8+uQeXoMbH0Hr9ntuM9dtGMT0vtaiUwXa9Rd71NaJ2vhfg9xG+GjQLQMejtpz7PekKvtTgeOe9ixbBomNToSVjSrldXb0VheQMKENnSxNzg0B4OXrD3XwFKrfp80hubofPqdSLkRzjqjizomxTgsY2V514SxTn8HfKjeu2hJiVaDg13v9sz6gSuE8FvA552YEOtskX7MnhbIA2r4CUgnpraK4w46TPLBUH7wyrfgkcmwiA6D87xoRqiiFOWm7iMfb/rBefk5VT9jLaQo7F48qt62kk4YHNHjtbxL+V7rwNHJqAFwyo0wwYVD0SLFHTCBCjlE7IV7xBtHadZv6oxeomwOJ+pD/19AtUlxQ0mm0ZHq70DQl8BErRuVNgGH1VEuhWMz4BTBD+8mvy+AZn6APuFVo0zGWKp4Q33UmnAaoGJ/POumFkbkZ4tGpBmtlFvc="
 
 install:

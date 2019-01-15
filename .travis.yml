@@ -4,7 +4,7 @@ node_js:
 env:
   global:
     - GH_REF: github.com/roy-k/roy-k.github.io.git
-    - secure: "pbKnYUn0no/lgyu/yA0e6aqnUYWc/H6blR9Nm1nlpU0+nZizSVKGdrGsmpSBo/m4ZuuMax+oI2GEmTkFgZi6ip10Ol1VgU9K5DIctJqykc9PH4nRRfnmyAN3EmgZE1LoK/tb4Tz8KaiCmxDWxUKlk0mknuJBp6mjNFgjdlTFPHXx/hARmJK1MRe2mX91q0v8Y023ciTgx+8i6LzTHNmLkKyNiSD8j4fm4ZvjTx4kVSs8+uQeXoMbH0Hr9ntuM9dtGMT0vtaiUwXa9Rd71NaJ2vhfg9xG+GjQLQMejtpz7PekKvtTgeOe9ixbBomNToSVjSrldXb0VheQMKENnSxNzg0B4OXrD3XwFKrfp80hubofPqdSLkRzjqjizomxTgsY2V514SxTn8HfKjeu2hJiVaDg13v9sz6gSuE8FvA552YEOtskX7MnhbIA2r4CUgnpraK4w46TPLBUH7wyrfgkcmwiA6D87xoRqiiFOWm7iMfb/rBefk5VT9jLaQo7F48qt62kk4YHNHjtbxL+V7rwNHJqAFwyo0wwYVD0SLFHTCBCjlE7IV7xBtHadZv6oxeomwOJ+pD/19AtUlxQ0mm0ZHq70DQl8BErRuVNgGH1VEuhWMz4BTBD+8mvy+AZn6APuFVo0zGWKp4Q33UmnAaoGJ/POumFkbkZ4tGpBmtlFvc="
+    - secure: "11QR1BN2mPX2IyPxVEKAD3w+v6xEAWg6nuP1FElr+p7xL9mBxCT1JIFNJCttLRhTLOO9dfzcpb2evb00iYGucHAaO5mDAbrUXyvhbjFsgUn90jXc1VGVdXTP2bMD6ocAz5VnweUxYvKilL8ex+17MxPapg+dgCQ0ygKr4EYR3axOcCaGqPNWxHxuvhqeHEOWEzWkD9hJe7i/hKJLm6gAqtrw9gtOwVPkkRPaGD7El6mk+DWpQTIBvSBMaDYyhAHwZT7PmdxgXIJJ5Jqb6TKUwHNitvzIPwVXYbKsVE0j2RlznvP5KYo/5EbtKUhos+hQyiQsfdhlTm0h1j+I3nNCaMPK3uNRxgmJKTDtAS5U5l+vKhwB5aQBg6VS9BQ5g90b17w7MWZK22nQrug6bnZx1hUcZscjWCqz9OrIlHj10sJ9OuNZitdD4gv2tu/KqjOYI23TeZ0F9mHv7aeh80tlO/CHgcQdvR2TxtMYxeIxb3rAJecAhJdksyTAoP+pGm2rxaOtZzjp//G9Gl+yj15ARhJKOqz5me/DCxzlbV3poNfw8iCyDS+VGh8tyu7zEjPXl3X7KpxdOyIn+KzjOkhLwoAIaVtogYEBKV9TGesbEuVbyJyxjVqozUOzr368IM2Icm7O57CdyXbJvX5rR0dQlGp5TyACSAs6d923Yf1Y4K8="
 
 install:
   - npm install
@@ -19,4 +19,4 @@ after_script:
   - git config user.email "roy.k.gao@gmail.com"
   - git add .
   - git commit -m "Update docs"
-  - git push -f "https://${GH_TOKEN}@${GH_REF}" master
+  - git push -f "https://${GH_TOKEN}@${GH_REF}" master:gh-pages

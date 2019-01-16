@@ -9,7 +9,7 @@ env:
 install:
   - npm install
 before_script:
-  - git checkout -b source && npm install -g hexo
+  - git checkout source && npm install -g hexo
 script:
   - hexo g
 after_script:

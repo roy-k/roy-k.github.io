@@ -9,7 +9,7 @@ env:
 install:
   - npm install
 before_script:
-  - npm install -g hexo
+  - git checkout -b source && npm install -g hexo
 script:
   - hexo g
 after_script:
@@ -19,4 +19,4 @@ after_script:
   - git config user.email "roy.k.gao@gmail.com"
   - git add .
   - git commit -m "Update docs"
-  - git push -f "https://${GH_TOKEN}@${GH_REF}" master:gh-pages
+  - git push -f "https://${GH_TOKEN}@${GH_REF}" master

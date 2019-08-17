@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.0">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.1.0">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.1.0',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="自己有一个阿里云的虚拟服务器，用来部署自己闲暇所写练习。之前没有了解到自动化部署方案，每次更新需要登录服务器来更新文件，实在麻烦。偶然看到可以自动化部署，所以有如下一番折腾。  原理图">
+<meta name="keywords" content="travis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="travis实现自动部署git项目到私有云服务器">
+<meta property="og:url" content="https://roy-k.github.io/2018/03/16/2018-3-16/index.html">
+<meta property="og:site_name" content="Coding Live">
+<meta property="og:description" content="自己有一个阿里云的虚拟服务器，用来部署自己闲暇所写练习。之前没有了解到自动化部署方案，每次更新需要登录服务器来更新文件，实在麻烦。偶然看到可以自动化部署，所以有如下一番折腾。  原理图">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://roy-k.github.io/2018/03/16/2018-3-16/travis20180315_1.jpg">
+<meta property="og:image" content="https://roy-k.github.io/2018/03/16/2018-3-16/travis20180315_2.jpg">
+<meta property="og:image" content="https://roy-k.github.io/2018/03/16/2018-3-16/travis20180315_3.jpg">
+<meta property="og:image" content="https://roy-k.github.io/2018/03/16/2018-3-16/travis20180315_4.jpg">
+<meta property="og:updated_time" content="2019-08-17T04:41:20.133Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="travis实现自动部署git项目到私有云服务器">
+<meta name="twitter:description" content="自己有一个阿里云的虚拟服务器，用来部署自己闲暇所写练习。之前没有了解到自动化部署方案，每次更新需要登录服务器来更新文件，实在麻烦。偶然看到可以自动化部署，所以有如下一番折腾。  原理图">
+<meta name="twitter:image" content="https://roy-k.github.io/2018/03/16/2018-3-16/travis20180315_1.jpg">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="https://roy-k.github.io/2018/03/16/2018-3-16/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>travis实现自动部署git项目到私有云服务器 | Coding Live</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Coding Live</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">代码如诗</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">12</span></a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">9</span></a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">17</span></a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+  
+  
+
+  
+
+  <a href="https://github.com/roy-k" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewbox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg></a>
+
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://roy-k.github.io/2018/03/16/2018-3-16/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="roy">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Coding Live">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">travis实现自动部署git项目到私有云服务器
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-03-16 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-16T00:00:00+00:00">2018-03-16</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/CI/" itemprop="url" rel="index"><span itemprop="name">CI</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>自己有一个阿里云的虚拟服务器，用来部署自己闲暇所写练习。之前没有了解到自动化部署方案，每次更新需要登录服务器来更新文件，实在麻烦。偶然看到可以<a href="https://juejin.im/entry/5a7d77bcf265da4e8c44fdb6" target="_blank" rel="noopener">自动化部署</a>，所以有如下一番折腾。</p>
+<img src="/2018/03/16/2018-3-16/travis20180315_1.jpg" width="1513">
+<h2 id="原理图"><a href="#原理图" class="headerlink" title="原理图"></a>原理图</h2><img src="/2018/03/16/2018-3-16/travis20180315_2.jpg" width="562">
+<a id="more"></a>
+<h2 id="说明："><a href="#说明：" class="headerlink" title="说明："></a>说明：</h2><p>实现较为个人，服务器直接使用root账户</p>
+<p>vue静态项目，只需要部署编译后的文件即可</p>
+<p>如需做服务器用户区分等，可查看相关文章，底部链接中即有</p>
+<h2 id="主要步骤："><a href="#主要步骤：" class="headerlink" title="主要步骤："></a>主要步骤：</h2><ol>
+<li><p>创建github公开项目</p>
+</li>
+<li><p>服务器实现手动部署能力</p>
+</li>
+<li><p>登录travis，开启项目监听</p>
+</li>
+<li><p>服务器安装travis客户端等</p>
+</li>
+<li><p>处理rsa秘钥，并加入项目托管</p>
+</li>
+<li><p>测试</p>
+</li>
+</ol>
+<h2 id="详细流程："><a href="#详细流程：" class="headerlink" title="详细流程："></a>详细流程：</h2><h3 id="1-创建github公开项目"><a href="#1-创建github公开项目" class="headerlink" title="1. 创建github公开项目"></a>1. 创建github公开项目</h3><p>没啥注意的，跑通项目就行了</p>
+<h3 id="2-服务器实现手动部署能力"><a href="#2-服务器实现手动部署能力" class="headerlink" title="2. 服务器实现手动部署能力"></a>2. 服务器实现手动部署能力</h3><p>安装相关环境：git，node等相关依赖</p>
+<p>实现：git更新项目、node构建、<a href="https://github.com/roy-k/roy-k.github.io/issues/4" target="_blank" rel="noopener">nginx服务</a>等，实现线上访问</p>
+<p><a href="https://www.google.com/search?newwindow=1&amp;safe=strict&amp;ei=YYarWv67HMSw0gTzoILwCQ&amp;q=git-ssh" target="_blank" rel="noopener">git-ssh配置和使用</a></p>
+<p>进入秘钥文件夹</p>
+<pre><code>cd .ssh/
+</code></pre><p>将生成的公钥添加为受信列表(<strong>travis访问服务器的关键</strong>)</p>
+<pre><code>cat id_rsa.pub &gt;&gt; authorized_keys
+</code></pre><p>测试访问，创建config文件，内容见下</p>
+<blockquote>
+<p>假如使用非root用户，需注意<a href="https://juejin.im/post/5a9e1a5751882555712bd8e1" target="_blank" rel="noopener">权限相关</a></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Host test</span><br><span class="line">HostName <span class="number">99.99</span><span class="number">.99</span><span class="number">.99</span>(你的服务器ip)</span><br><span class="line">#登陆的用户名</span><br><span class="line">User travis</span><br><span class="line">IdentitiesOnly yes</span><br><span class="line">#登陆使用的密钥</span><br><span class="line">IdentityFile ~/.ssh/id_rsa</span><br></pre></td></tr></table></figure>
+<pre><code>ssh test
+</code></pre><h3 id="3-登录travis，开启项目监听"><a href="#3-登录travis，开启项目监听" class="headerlink" title="3. 登录travis，开启项目监听"></a>3. 登录travis，开启项目监听</h3><p>使用github账户，登录<a href="https://travis-ci.org" target="_blank" rel="noopener">travis</a></p>
+<p>开启项目监听</p>
+<img src="/2018/03/16/2018-3-16/travis20180315_3.jpg" width="381">
+<p>进入项目日志页，先保留页面</p>
+<h3 id="4-服务器安装travis客户端等"><a href="#4-服务器安装travis客户端等" class="headerlink" title="4. 服务器安装travis客户端等"></a>4. 服务器安装travis客户端等</h3><p>需先安装 ruby2.0</p>
+<pre><code>yum install ruby
+
+验证： ruby -v 或 gem -v
+</code></pre><p>通过gem安装travis</p>
+<pre><code>gem install travis
+
+可能会安装失败 提示缺少ruby头文件，**yum install ruby-devel**可解决
+</code></pre><p>登录travis, 使用github账户</p>
+<pre><code>travis login
+</code></pre><h3 id="5-处理rsa秘钥，并加入项目托管"><a href="#5-处理rsa秘钥，并加入项目托管" class="headerlink" title="5. 处理rsa秘钥，并加入项目托管"></a>5. 处理rsa秘钥，并加入项目托管</h3><p>进入项目目录，创建.travis.yml文件，填写项目基本配置，例：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">language: node_js</span><br><span class="line">node_js:</span><br><span class="line">- <span class="string">'8.9.0'</span></span><br></pre></td></tr></table></figure></p>
+<p>加密本地秘钥, 会自动写入<em>.travis.yml</em>文件</p>
+<pre><code>travis encrypt-file ~/.ssh/id_rsa --add
+</code></pre><p>编辑<em>.travis.yml</em>文件</p>
+<pre><code>删除最后一行的转义符(\)
+</code></pre><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">before_install:</span><br><span class="line">    - openssl aes<span class="number">-256</span>-cbc -K $encrypted_e65149523857_key -iv $encrypted_e65149523857_iv</span><br><span class="line">    -<span class="keyword">in</span> id_rsa.enc -out ~\/.ssh/id_rsa -d</span><br></pre></td></tr></table></figure>
+<p>添加after_success钩子(<strong>部署关键</strong>)</p>
+<pre><code>原理是使用ssh连接服务器，执行部署命令
+</code></pre><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">after_success:</span><br><span class="line">    - ssh root@xx.xx.xx.xx -o StrictHostKeyChecking=no <span class="string">'cd 项目目录 &amp;&amp; git pull &amp;&amp; npm install &amp;&amp; npm run build'</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>使用 ssh 命令连接一定要设置StrictHostKeyChecking=no，否则第一次连接时依然会要求你确认。后面引号的内容就是登陆你的Linux服务器之后，在你的服务器执行的命令，你也可以写成一个脚本。只要登陆上服务器之后，就随你操作了。</p>
+</blockquote>
+<p>提交上述更改至github</p>
+<h3 id="6-测试"><a href="#6-测试" class="headerlink" title="6. 测试"></a>6. 测试</h3><p>更新、编辑、提交</p>
+<p>刷新查看第3步保留的项目日志页，可跟踪执行状态</p>
+<img src="/2018/03/16/2018-3-16/travis20180315_4.jpg" width="840">
+<h2 id="异常点"><a href="#异常点" class="headerlink" title="异常点"></a>异常点</h2><pre><code>- yarn-lock文件有影响自动测试，删除后ok，使用npm，故未做深究。
+
+- 服务器有开放StrictHostKeyChecking，还是需在ssh命令禁止验证，未知
+</code></pre><h2 id="未达成"><a href="#未达成" class="headerlink" title="未达成"></a>未达成</h2><pre><code>- 集成测试相关配置(travis 配置)
+</code></pre><h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li><a href="https://juejin.im/entry/5a7d77bcf265da4e8c44fdb6" target="_blank" rel="noopener">不仅仅是前端er——折腾服务器武装自己</a></li>
+<li><a href="https://juejin.im/post/5a9e1a5751882555712bd8e1" target="_blank" rel="noopener">Travis-CI自动化测试并部署至自己的CentOS服务器</a></li>
+<li><a href="http://bbs.bugcode.cn/t/5665" target="_blank" rel="noopener">gem install：无法构建gem原生扩展（无法找到头文件）</a><br><a href="https://www.cnblogs.com/ilinuxer/p/5087452.html" target="_blank" rel="noopener">linux ssh_config和sshd_config配置文件</a></li>
+<li><a href="http://smilejay.com/2012/12/ssh-config-host-key-checking/" target="_blank" rel="noopener">SSH连接时提示“THE AUTHENTICITY OF HOST XX CAN’T BE ESTABLISHED”</a></li>
+<li>等等</li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/source/tags/travis/" rel="tag"># travis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/02/27/2018-2-27/" rel="next" title="在 Google platform 上架設 ShadowSocks(SS) + BBR">
+                <i class="fa fa-chevron-left"></i> 在 Google platform 上架設 ShadowSocks(SS) + BBR
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/21/2018-3-21/" rel="prev" title="webpack 入门姿势">
+                webpack 入门姿势 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="roy">
+            
+              <p class="site-author-name" itemprop="name">roy</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">12</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/roy-k" title="GitHub &rarr; https://github.com/roy-k" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:roy.k.gao@gmail.com" title="E-Mail &rarr; mailto:roy.k.gao@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#原理图"><span class="nav-number">1.</span> <span class="nav-text">原理图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#说明："><span class="nav-number">2.</span> <span class="nav-text">说明：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主要步骤："><span class="nav-number">3.</span> <span class="nav-text">主要步骤：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#详细流程："><span class="nav-number">4.</span> <span class="nav-text">详细流程：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-创建github公开项目"><span class="nav-number">4.1.</span> <span class="nav-text">1. 创建github公开项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-服务器实现手动部署能力"><span class="nav-number">4.2.</span> <span class="nav-text">2. 服务器实现手动部署能力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-登录travis，开启项目监听"><span class="nav-number">4.3.</span> <span class="nav-text">3. 登录travis，开启项目监听</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-服务器安装travis客户端等"><span class="nav-number">4.4.</span> <span class="nav-text">4. 服务器安装travis客户端等</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-处理rsa秘钥，并加入项目托管"><span class="nav-number">4.5.</span> <span class="nav-text">5. 处理rsa秘钥，并加入项目托管</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-测试"><span class="nav-number">4.6.</span> <span class="nav-text">6. 测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常点"><span class="nav-number">5.</span> <span class="nav-text">异常点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#未达成"><span class="nav-number">6.</span> <span class="nav-text">未达成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文章"><span class="nav-number">7.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">roy</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.1.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.0"></script>
+
+  <script src="/js/motion.js?v=7.1.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.0"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.0"></script>
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.0"></script>
+<script src="/js/post-details.js?v=7.1.0"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.0"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+<script>
+  $('.highlight').each(function(i, e) {
+    var $wrap = $('<div>').addClass('highlight-wrap');
+    $(e).after($wrap);
+    $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function(e) {
+      var code = $(this).parent().find('.code').find('.line').map(function(i, e) {
+        return $(e).text();
+      }).toArray().join('\n');
+      var ta = document.createElement('textarea');
+      var yPosition = window.pageYOffset || document.documentElement.scrollTop;
+      ta.style.top = yPosition + 'px'; // Prevent page scroll
+      ta.style.position = 'absolute';
+      ta.style.opacity = '0';
+      ta.readOnly = true;
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, code.length);
+      ta.readOnly = false;
+      var result = document.execCommand('copy');
+      
+      ta.blur(); // For iOS
+      $(this).blur();
+    })).on('mouseleave', function(e) {
+      var $b = $(this).find('.copy-btn');
+      setTimeout(function() {
+        $b.text('复制');
+      }, 300);
+    }).append(e);
+  })
+</script>
+
+
+  
+
+  
+
+</body>
+</html>
